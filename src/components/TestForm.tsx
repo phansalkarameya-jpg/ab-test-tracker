@@ -24,6 +24,7 @@ interface ABTest {
   year: number;
   status: string;
   hypothesis?: string | null;
+  serviceCategory: string;
   channel: string;
   primaryMetric: string;
   notes?: string | null;
@@ -56,6 +57,8 @@ function parseScreenshots(val: unknown): string[] {
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
+
+const SERVICE_CATEGORIES = ['Home Cleaning', 'Salon At Home', 'Specialty', 'Healthcare'];
 
 const CHANNELS = ['Email', 'Landing Page', 'Paid Ads', 'Social', 'Website', 'Other'];
 
@@ -93,6 +96,7 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
   const [month, setMonth] = useState(initialData?.month ?? now.getMonth() + 1);
   const [year, setYear] = useState(initialData?.year ?? now.getFullYear());
   const [hypothesis, setHypothesis] = useState(initialData?.hypothesis ?? '');
+  const [serviceCategory, setServiceCategory] = useState(initialData?.serviceCategory ?? '');
   const [channel, setChannel] = useState(initialData?.channel ?? '');
   const [customChannel, setCustomChannel] = useState('');
   const [primaryMetric, setPrimaryMetric] = useState(initialData?.primaryMetric ?? '');
@@ -180,6 +184,7 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
       month,
       year,
       hypothesis: hypothesis || null,
+      serviceCategory,
       channel: resolvedChannel,
       primaryMetric,
       notes: notes || null,
@@ -274,6 +279,21 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
             placeholder="We believe that... will result in..."
             className={inputClass}
           />
+        </div>
+
+        <div>
+          <label htmlFor="serviceCategory" className={labelClass}>Service Category</label>
+          <select
+            id="serviceCategory"
+            value={serviceCategory}
+            onChange={(e) => setServiceCategory(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Select category</option>
+            {SERVICE_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
         </div>
 
         <div>

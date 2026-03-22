@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
-import crypto from 'crypto';
+import { put } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,21 +13,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const blob = await put(file.name, file, {
+      access: 'public',
+    });
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    await mkdir(uploadDir, { recursive: true });
-
-    const ext = path.extname(file.name);
-    const uniqueName = `${crypto.randomUUID()}${ext}`;
-    const filePath = path.join(uploadDir, uniqueName);
-
-    await writeFile(filePath, buffer);
-
-    const url = `/uploads/${uniqueName}`;
-
-    return NextResponse.json({ url }, { status: 201 });
+    return NextResponse.json({ url: blob.url }, { status: 201 });
   } catch (error) {
     console.error('Failed to upload file:', error);
     return NextResponse.json(

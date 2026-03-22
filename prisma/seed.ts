@@ -15,6 +15,7 @@ async function main() {
       year: 2025,
       hypothesis:
         'Changing the CTA button from "Learn More" to "Start Free Trial" will increase click-through rate because it creates a stronger call to action with a clear value proposition.',
+      serviceCategory: 'Home Cleaning',
       channel: 'Website',
       primaryMetric: 'Click-through rate',
       notes:
@@ -49,6 +50,7 @@ async function main() {
       year: 2025,
       hypothesis:
         'Using personalization (first name) in the subject line will increase open rates compared to a generic greeting.',
+      serviceCategory: 'Salon At Home',
       channel: 'Email',
       primaryMetric: 'Open rate',
       notes:
@@ -81,6 +83,7 @@ async function main() {
       year: 2025,
       hypothesis:
         'Showing a pricing comparison table on the landing page will increase conversion rate by helping visitors quickly understand our value vs competitors.',
+      serviceCategory: 'Specialty',
       channel: 'Paid Ads',
       primaryMetric: 'Conversion rate',
       notes:
@@ -120,6 +123,7 @@ async function main() {
       status: 'planned',
       hypothesis:
         'Reducing the checkout from 3 steps to 1 page will decrease cart abandonment by removing friction points.',
+      serviceCategory: 'Healthcare',
       channel: 'Website',
       primaryMetric: 'Checkout completion rate',
       notes: null,
@@ -152,6 +156,7 @@ async function main() {
       status: 'running',
       hypothesis:
         'Moving the newsletter signup from the footer to a slide-in modal after 30s will increase signups.',
+      serviceCategory: 'Home Cleaning',
       channel: 'Website',
       primaryMetric: 'Signup rate',
       notes: 'Test launched on March 10. Collecting data for 2 weeks.',

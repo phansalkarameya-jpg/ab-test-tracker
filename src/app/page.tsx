@@ -23,6 +23,7 @@ interface ABTest {
   year: number;
   status: string;
   hypothesis: string | null;
+  serviceCategory: string;
   channel: string;
   primaryMetric: string;
   notes: string | null;
@@ -35,6 +36,7 @@ interface ABTest {
 interface Filters {
   search: string;
   channels: string[];
+  serviceCategories: string[];
   statuses: string[];
   significance: string;
   dateRange: {
@@ -51,6 +53,7 @@ export default function DashboardPage() {
   const [filters, setFilters] = useState<Filters>({
     search: '',
     channels: [],
+    serviceCategories: [],
     statuses: [],
     significance: '',
     dateRange: { fromMonth: null, fromYear: null, toMonth: null, toYear: null },
@@ -60,7 +63,7 @@ export default function DashboardPage() {
     fetch('/api/tests')
       .then((res) => res.json())
       .then((data) => {
-        setTests(data);
+        setTests(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -68,6 +71,11 @@ export default function DashboardPage() {
 
   const channels = useMemo(
     () => [...new Set(tests.map((t) => t.channel))],
+    [tests]
+  );
+
+  const serviceCategories = useMemo(
+    () => [...new Set(tests.map((t) => t.serviceCategory).filter(Boolean))],
     [tests]
   );
 
@@ -82,6 +90,8 @@ export default function DashboardPage() {
       }
       // Channel (multi-select)
       if (filters.channels.length > 0 && !filters.channels.includes(test.channel)) return false;
+      // Service Category (multi-select)
+      if (filters.serviceCategories.length > 0 && !filters.serviceCategories.includes(test.serviceCategory)) return false;
       // Status (multi-select)
       if (filters.statuses.length > 0 && !filters.statuses.includes(test.status)) return false;
       // Date range
@@ -140,7 +150,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <StatsRow tests={filteredTests} />
-      <FilterBar channels={channels} onFilterChange={setFilters} />
+      <FilterBar channels={channels} serviceCategories={serviceCategories} onFilterChange={setFilters} />
 
       {monthGroups.length === 0 ? (
         <div className="text-center py-16">

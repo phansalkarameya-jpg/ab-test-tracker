@@ -22,6 +22,7 @@ interface ABTest {
   year: number;
   status: string;
   hypothesis: string | null;
+  serviceCategory: string;
   channel: string;
   primaryMetric: string;
   notes: string | null;

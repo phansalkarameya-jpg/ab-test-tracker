@@ -5,6 +5,7 @@ import { useState } from 'react';
 interface FilterValues {
   search: string;
   channels: string[];
+  serviceCategories: string[];
   statuses: string[];
   significance: string;
   dateRange: {
@@ -17,6 +18,7 @@ interface FilterValues {
 
 interface FilterBarProps {
   channels: string[];
+  serviceCategories: string[];
   onFilterChange: (filters: FilterValues) => void;
 }
 
@@ -37,9 +39,10 @@ function toggleValue(arr: string[], val: string): string[] {
   return arr.includes(val) ? arr.filter((v) => v !== val) : [...arr, val];
 }
 
-export default function FilterBar({ channels, onFilterChange }: FilterBarProps) {
+export default function FilterBar({ channels, serviceCategories, onFilterChange }: FilterBarProps) {
   const [search, setSearch] = useState('');
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
+  const [selectedServiceCategories, setSelectedServiceCategories] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [significance, setSignificance] = useState('');
   const [fromMonth, setFromMonth] = useState<number | null>(null);
@@ -50,6 +53,7 @@ export default function FilterBar({ channels, onFilterChange }: FilterBarProps) 
   function emitChange(overrides: Partial<{
     search: string;
     channels: string[];
+    serviceCategories: string[];
     statuses: string[];
     significance: string;
     fromMonth: number | null;
@@ -59,6 +63,7 @@ export default function FilterBar({ channels, onFilterChange }: FilterBarProps) 
   }>) {
     const s = overrides.search ?? search;
     const ch = overrides.channels ?? selectedChannels;
+    const sc = overrides.serviceCategories ?? selectedServiceCategories;
     const st = overrides.statuses ?? selectedStatuses;
     const sig = overrides.significance ?? significance;
     const fm = overrides.fromMonth !== undefined ? overrides.fromMonth : fromMonth;
@@ -69,6 +74,7 @@ export default function FilterBar({ channels, onFilterChange }: FilterBarProps) 
     onFilterChange({
       search: s,
       channels: ch,
+      serviceCategories: sc,
       statuses: st,
       significance: sig,
       dateRange: { fromMonth: fm, fromYear: fy, toMonth: tm, toYear: ty },
@@ -222,6 +228,32 @@ export default function FilterBar({ channels, onFilterChange }: FilterBarProps) 
             })}
           </div>
         </div>
+
+        {/* Service Category pills */}
+        {serviceCategories.length > 0 && (
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1.5">Service Category</label>
+            <div className="flex flex-wrap gap-1.5">
+              {serviceCategories.map((cat) => {
+                const active = selectedServiceCategories.includes(cat);
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => {
+                      const next = toggleValue(selectedServiceCategories, cat);
+                      setSelectedServiceCategories(next);
+                      emitChange({ serviceCategories: next });
+                    }}
+                    className={`${pillBase} ${active ? pillActive : pillInactive}`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Channel pills */}
         {channels.length > 0 && (
