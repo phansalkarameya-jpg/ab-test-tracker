@@ -6,6 +6,7 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 ## Tech Stack
 - **Framework:** Next.js 16 (App Router, React 19)
 - **Database:** Neon PostgreSQL via Prisma ORM
+- **File Storage:** Vercel Blob (public store)
 - **Styling:** Tailwind CSS 4
 - **Charts:** Recharts
 - **Language:** TypeScript
@@ -15,7 +16,7 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - `src/lib/db.ts` — Prisma singleton (prevents hot-reload issues)
 - `src/lib/statistics.ts` — Z-test statistical significance calculator
 - `src/app/api/tests/` — REST API routes (GET/POST at `/`, GET/PUT/DELETE at `/[id]`)
-- `src/app/api/upload/` — Screenshot file upload (saves to `public/uploads/`)
+- `src/app/api/upload/` — Screenshot upload via Vercel Blob (`@vercel/blob` SDK)
 - `src/components/` — TestForm, TestCard, FilterBar, StatsRow, MonthGroup, VariantComparison, SignificanceCalculator
 
 ## Database
@@ -24,20 +25,28 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - **Note:** Removed `channel_binding=require` from connection string — it causes connection drops with Neon's pooler
 
 ## Key Features
-- Dashboard with stats cards, search, and filters (status, channel, significance, date range)
+- Dashboard with stats cards, search, and filters (status, service category, channel, significance, date range)
+- Service Categories: Home Cleaning, Salon At Home, Specialty, Healthcare
 - Test statuses: Planned, Running, Completed
 - Multiple screenshots per variant (stored as JSON string array in `screenshots` field)
+- Screenshots uploaded to Vercel Blob (persistent cloud storage, returns public URLs)
 - Screenshot delete via hover "x" button on thumbnails
 - Live statistical significance calculator in the test form
 - Custom channel support (preset list + custom input)
 - Winner tracking per test
 
 ## Deployment
-- **Hosting:** Vercel (auto-deploys from GitHub)
+- **Hosting:** Vercel (auto-deploys from GitHub on push to main)
 - **Repo:** https://github.com/phansalkarameya-jpg/ab-test-tracker
 - **Database:** Neon PostgreSQL (free tier)
+- **File Storage:** Vercel Blob (public store, free tier)
 - `postinstall` script in package.json runs `prisma generate` for Vercel builds
-- Screenshots upload to `public/uploads/` — works locally but NOT on Vercel (ephemeral filesystem). Needs cloud storage (Vercel Blob, Cloudinary) for production screenshots.
+- Env var changes in Vercel require a redeploy to take effect
+
+## Environment Variables
+- `DATABASE_URL` — Neon PostgreSQL pooler connection string
+- `BLOB_READ_WRITE_TOKEN` — Vercel Blob store token (public store)
+- Both are in `.env` locally (gitignored) and set in Vercel project settings
 
 ## Commands
 - `npm run dev` — Start dev server
@@ -48,4 +57,5 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 
 ## Git
 - SSH auth configured for GitHub
-- `.env` is gitignored — contains `DATABASE_URL` with Neon credentials
+- `.env` is gitignored — contains DATABASE_URL and BLOB_READ_WRITE_TOKEN
+- Feature branches recommended for testing changes before merging to main
