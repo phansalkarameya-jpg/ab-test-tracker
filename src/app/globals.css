@@ -13,6 +13,10 @@
     display: none !important;
   }
   body {
+    background: white;
     font-size: 12px;
+  }
+  section {
+    page-break-inside: avoid;
   }
 }

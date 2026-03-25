@@ -54,6 +54,7 @@ export default function TestDetailPage() {
   const [test, setTest] = useState<ABTest | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     fetch(`/api/tests/${params.id}`)
@@ -65,6 +66,27 @@ export default function TestDetailPage() {
       .catch(() => setTest(null))
       .finally(() => setLoading(false));
   }, [params.id]);
+
+  async function handleDownloadPDF() {
+    if (!test) return;
+    setDownloading(true);
+    try {
+      const res = await fetch(`/api/tests/${test.id}/pdf`);
+      if (!res.ok) throw new Error('PDF generation failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${test.title.replace(/[^a-zA-Z0-9]/g, '-')}-report.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   async function handleDelete() {
     if (!confirm('Are you sure you want to delete this test? This cannot be undone.')) return;
@@ -137,6 +159,13 @@ export default function TestDetailPage() {
           </div>
         </div>
         <div className="flex gap-2 no-print">
+          <button
+            onClick={handleDownloadPDF}
+            disabled={downloading}
+            className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
+          >
+            {downloading ? 'Generating...' : 'Download PDF'}
+          </button>
           <a
             href={`/tests/${test.id}/edit`}
             className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
