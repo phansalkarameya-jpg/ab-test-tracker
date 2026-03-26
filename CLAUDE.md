@@ -7,6 +7,7 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - **Framework:** Next.js 16 (App Router, React 19)
 - **Database:** Neon PostgreSQL via Prisma ORM
 - **File Storage:** Vercel Blob (public store)
+- **PDF Generation:** @react-pdf/renderer (server-side)
 - **Styling:** Tailwind CSS 4
 - **Charts:** Recharts
 - **Language:** TypeScript
@@ -16,7 +17,9 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - `src/lib/db.ts` — Prisma singleton (prevents hot-reload issues)
 - `src/lib/statistics.ts` — Z-test statistical significance calculator
 - `src/app/api/tests/` — REST API routes (GET/POST at `/`, GET/PUT/DELETE at `/[id]`)
+- `src/app/api/tests/[id]/pdf/` — Server-side PDF generation via @react-pdf/renderer
 - `src/app/api/upload/` — Screenshot upload via Vercel Blob (`@vercel/blob` SDK)
+- `src/components/TestReportPDF.tsx` — PDF document component (header, data table, stats, notes, footer)
 - `src/components/` — TestForm, TestCard, FilterBar, StatsRow, MonthGroup, VariantComparison, SignificanceCalculator
 
 ## Database
@@ -34,6 +37,12 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - Live statistical significance calculator in the test form
 - Custom channel support (preset list + custom input)
 - Winner tracking per test
+- PDF download of test results (server-side rendered, proper formatting with tables and stats)
+
+## Important Notes
+- `next.config.ts` has `serverExternalPackages` for `@prisma/client`, `@react-pdf/renderer`, and `@react-pdf/pdfkit` — these must stay server-side due to Node.js dependencies
+- Tailwind CSS 4 uses `lab()` color functions — incompatible with html2canvas/html2pdf.js client-side capture (that's why PDF is server-rendered)
+- Neon free tier databases hibernate after inactivity — first request after sleep may timeout
 
 ## Deployment
 - **Hosting:** Vercel (auto-deploys from GitHub on push to main)
@@ -56,6 +65,8 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - `npm run setup` — Full setup (generate + push + seed)
 
 ## Git
-- SSH auth configured for GitHub
+- SSH auth configured for GitHub (key: `~/.ssh/id_ed25519`)
 - `.env` is gitignored — contains DATABASE_URL and BLOB_READ_WRITE_TOKEN
 - Feature branches recommended for testing changes before merging to main
+- Last stable pre-PDF commit: `37236be` — revert with `git revert 595c83e && git push` if needed
+- User: Ameya Phansalkar (phansalkar.ameya@gmail.com)
