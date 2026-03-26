@@ -20,7 +20,7 @@ export async function GET(
 
     const buffer = await renderToBuffer(<TestReportPDF test={test} />);
 
-    return new Response(buffer, {
+    return new Response(new Uint8Array(buffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${test.title.replace(/[^a-zA-Z0-9 ]/g, '')}-report.pdf"`,
