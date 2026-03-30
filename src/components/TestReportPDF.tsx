@@ -3,6 +3,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
 } from '@react-pdf/renderer';
 import { computeSignificance, formatRate, formatPValue } from '@/lib/statistics';
@@ -16,6 +17,7 @@ interface Variant {
   name: string;
   sampleSize: number;
   conversions: number;
+  screenshots: string;
 }
 
 interface TestData {
@@ -214,6 +216,30 @@ const s = StyleSheet.create({
     color: '#92400e',
   },
 
+  // Screenshots
+  screenshotGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  screenshotItem: {
+    width: '47%',
+    marginBottom: 8,
+  },
+  screenshotLabel: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: colors.secondary,
+    marginBottom: 4,
+  },
+  screenshotImage: {
+    width: '100%',
+    maxHeight: 200,
+    objectFit: 'contain' as const,
+    borderRadius: 4,
+    border: `1px solid ${colors.border}`,
+  },
+
   // Footer
   footer: {
     position: 'absolute' as const,
@@ -232,6 +258,19 @@ const s = StyleSheet.create({
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
+
+function parseScreenshots(val: unknown): string[] {
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return val ? [val] : [];
+    }
+  }
+  return [];
+}
 
 function winnerLabel(winner: string | null, variants: Variant[]): string {
   if (!winner || winner === 'inconclusive') return 'Inconclusive';
@@ -348,6 +387,23 @@ export default function TestReportPDF({ test }: { test: TestData }) {
             ))}
           </View>
         </View>
+
+        {/* ---- Screenshots ---- */}
+        {test.variants.some((v) => parseScreenshots(v.screenshots).length > 0) && (
+          <View style={s.section} wrap={false}>
+            <Text style={s.sectionTitle}>Variant Screenshots</Text>
+            <View style={s.screenshotGrid}>
+              {test.variants.flatMap((v) =>
+                parseScreenshots(v.screenshots).map((url, idx) => (
+                  <View key={`${v.id}-${idx}`} style={s.screenshotItem}>
+                    <Text style={s.screenshotLabel}>{v.name}</Text>
+                    <Image style={s.screenshotImage} src={url} />
+                  </View>
+                ))
+              )}
+            </View>
+          </View>
+        )}
 
         {/* ---- Statistical Analysis ---- */}
         {control &&
