@@ -19,13 +19,14 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - `src/app/api/tests/` — REST API routes (GET/POST at `/`, GET/PUT/DELETE at `/[id]`)
 - `src/app/api/tests/[id]/pdf/` — Server-side PDF generation via @react-pdf/renderer
 - `src/app/api/upload/` — Screenshot upload via Vercel Blob (`@vercel/blob` SDK)
-- `src/components/TestReportPDF.tsx` — PDF document component (header, data table, stats, notes, footer)
+- `src/components/TestReportPDF.tsx` — PDF document component (header, winner, data table, secondary metrics, screenshots, stats, notes, footer)
 - `src/components/` — TestForm, TestCard, FilterBar, StatsRow, MonthGroup, VariantComparison, SignificanceCalculator
 
 ## Database
 - **Provider:** PostgreSQL (Neon)
 - **Connection:** Via pooler URL in `DATABASE_URL` env var
 - **Note:** Removed `channel_binding=require` from connection string — it causes connection drops with Neon's pooler
+- **JSON string pattern:** Used for flexible data — `screenshots` on Variant and `secondaryMetrics` on ABTest are stored as JSON strings (`@default("[]")`) rather than separate tables
 
 ## Key Features
 - Dashboard with stats cards, search, and filters (status, service category, channel, significance, date range)
@@ -34,10 +35,11 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - Multiple screenshots per variant (stored as JSON string array in `screenshots` field)
 - Screenshots uploaded to Vercel Blob (persistent cloud storage, returns public URLs)
 - Screenshot delete via hover "x" button on thumbnails
+- Secondary metrics/KPIs: add unlimited custom metrics (e.g. CTR, Bounce Rate) with per-variant values (stored as JSON string in `secondaryMetrics` field on ABTest)
 - Live statistical significance calculator in the test form
 - Custom channel support (preset list + custom input)
 - Winner tracking per test
-- PDF download of test results (server-side rendered, proper formatting with tables and stats)
+- PDF download of test results (server-side rendered, includes winner badge, variant data table, secondary metrics table, screenshot images, statistical analysis, notes)
 
 ## Important Notes
 - `next.config.ts` has `serverExternalPackages` for `@prisma/client`, `@react-pdf/renderer`, and `@react-pdf/pdfkit` — these must stay server-side due to Node.js dependencies
@@ -68,5 +70,6 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - SSH auth configured for GitHub (key: `~/.ssh/id_ed25519`)
 - `.env` is gitignored — contains DATABASE_URL and BLOB_READ_WRITE_TOKEN
 - Feature branches recommended for testing changes before merging to main
-- Last stable pre-PDF commit: `37236be` — revert with `git revert 595c83e && git push` if needed
+- Last stable pre-PDF commit: `37236be`
+- Secondary metrics added in commit `bcfea1b`
 - User: Ameya Phansalkar (phansalkar.ameya@gmail.com)
