@@ -20,6 +20,11 @@ interface Variant {
   screenshots: string;
 }
 
+interface SecondaryMetric {
+  name: string;
+  values: number[];
+}
+
 interface TestData {
   title: string;
   month: number;
@@ -29,6 +34,7 @@ interface TestData {
   serviceCategory: string;
   channel: string;
   primaryMetric: string;
+  secondaryMetrics: string;
   notes: string | null;
   winner: string | null;
   variants: Variant[];
@@ -272,6 +278,18 @@ function parseScreenshots(val: unknown): string[] {
   return [];
 }
 
+function parseSecondaryMetrics(val: unknown): SecondaryMetric[] {
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 function winnerLabel(winner: string | null, variants: Variant[]): string {
   if (!winner || winner === 'inconclusive') return 'Inconclusive';
   if (winner === 'control') return variants[0]?.name || 'Control';
@@ -404,6 +422,40 @@ export default function TestReportPDF({ test }: { test: TestData }) {
             </View>
           </View>
         )}
+
+        {/* ---- Secondary Metrics ---- */}
+        {(() => {
+          const metrics = parseSecondaryMetrics(test.secondaryMetrics);
+          if (metrics.length === 0) return null;
+          const colWidth = `${Math.floor(65 / test.variants.length)}%`;
+          return (
+            <View style={s.section} wrap={false}>
+              <Text style={s.sectionTitle}>Secondary Metrics</Text>
+              <View style={s.table}>
+                <View style={s.tableHeader}>
+                  <Text style={[s.thCell, { width: '35%' }]}>Metric</Text>
+                  {test.variants.map((v) => (
+                    <Text key={v.id} style={[s.thCell, { width: colWidth, textAlign: 'right' as const }]}>
+                      {v.name}
+                    </Text>
+                  ))}
+                </View>
+                {metrics.map((m, i) => (
+                  <View key={i} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
+                    <Text style={[s.tdCell, { width: '35%', fontFamily: 'Helvetica-Bold' }]}>
+                      {m.name}
+                    </Text>
+                    {test.variants.map((_, vIdx) => (
+                      <Text key={vIdx} style={[s.tdCell, { width: colWidth, textAlign: 'right' as const }]}>
+                        {m.values[vIdx] != null ? String(m.values[vIdx]) : '—'}
+                      </Text>
+                    ))}
+                  </View>
+                ))}
+              </View>
+            </View>
+          );
+        })()}
 
         {/* ---- Statistical Analysis ---- */}
         {control &&

@@ -27,9 +27,27 @@ interface ABTest {
   primaryMetric: string;
   notes: string | null;
   winner: string | null;
+  secondaryMetrics: string;
   createdAt: string;
   updatedAt: string;
   variants: Variant[];
+}
+
+interface SecondaryMetric {
+  name: string;
+  values: number[];
+}
+
+function parseSecondaryMetrics(val: unknown): SecondaryMetric[] {
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 const MONTH_NAMES = [
@@ -228,6 +246,45 @@ export default function TestDetailPage() {
           </table>
         </div>
       </section>
+
+      {/* Secondary Metrics */}
+      {(() => {
+        const metrics = parseSecondaryMetrics(test.secondaryMetrics);
+        if (metrics.length === 0) return null;
+        return (
+          <section className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+              Secondary Metrics
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="pb-3 text-sm font-medium text-gray-500">Metric</th>
+                    {test.variants.map((v) => (
+                      <th key={v.id} className="pb-3 text-sm font-medium text-gray-500 text-right">
+                        {v.name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {metrics.map((m, i) => (
+                    <tr key={i} className="border-b border-gray-100 last:border-0">
+                      <td className="py-3 font-medium">{m.name}</td>
+                      {test.variants.map((_, vIdx) => (
+                        <td key={vIdx} className="py-3 text-right text-gray-700">
+                          {m.values[vIdx] != null ? m.values[vIdx] : '—'}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Statistical Results */}
       {control && otherVariants.length > 0 && (

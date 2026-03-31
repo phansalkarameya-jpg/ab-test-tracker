@@ -17,6 +17,11 @@ interface Variant {
   sortOrder: number;
 }
 
+interface SecondaryMetric {
+  name: string;
+  values: number[];
+}
+
 interface ABTest {
   id?: string;
   title: string;
@@ -27,6 +32,7 @@ interface ABTest {
   serviceCategory: string;
   channel: string;
   primaryMetric: string;
+  secondaryMetrics?: string;
   notes?: string | null;
   winner?: string | null;
   variants: Variant[];
@@ -51,6 +57,19 @@ function parseScreenshots(val: unknown): string[] {
       return val ? [val] : [];
     }
   }
+  return [];
+}
+
+function parseSecondaryMetrics(val: unknown): SecondaryMetric[] {
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  if (Array.isArray(val)) return val;
   return [];
 }
 
@@ -109,6 +128,9 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
           screenshots: parseScreenshots(v.screenshots),
         }))
       : defaultVariants()
+  );
+  const [secondaryMetrics, setSecondaryMetrics] = useState<SecondaryMetric[]>(
+    parseSecondaryMetrics(initialData?.secondaryMetrics)
   );
   const [uploading, setUploading] = useState<number | null>(null);
 
@@ -171,11 +193,52 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
     );
   };
 
+  /* ---- Secondary metrics helpers ---- */
+
+  const addSecondaryMetric = () => {
+    setSecondaryMetrics((prev) => [
+      ...prev,
+      { name: '', values: variants.map(() => 0) },
+    ]);
+  };
+
+  const removeSecondaryMetric = (index: number) => {
+    setSecondaryMetrics((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateMetricName = (index: number, name: string) => {
+    setSecondaryMetrics((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], name };
+      return updated;
+    });
+  };
+
+  const updateMetricValue = (metricIndex: number, variantIndex: number, value: number) => {
+    setSecondaryMetrics((prev) => {
+      const updated = [...prev];
+      const values = [...updated[metricIndex].values];
+      // Ensure array is long enough for all variants
+      while (values.length < variants.length) values.push(0);
+      values[variantIndex] = value;
+      updated[metricIndex] = { ...updated[metricIndex], values };
+      return updated;
+    });
+  };
+
   /* ---- Submit ---- */
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const resolvedChannel = useCustomChannel ? customChannel : channel;
+
+    // Trim metric values arrays to match current variant count
+    const trimmedMetrics = secondaryMetrics
+      .filter((m) => m.name.trim() !== '')
+      .map((m) => ({
+        name: m.name,
+        values: variants.map((_, i) => m.values[i] ?? 0),
+      }));
 
     onSubmit({
       ...(initialData?.id ? { id: initialData.id } : {}),
@@ -187,6 +250,7 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
       serviceCategory,
       channel: resolvedChannel,
       primaryMetric,
+      secondaryMetrics: JSON.stringify(trimmedMetrics),
       notes: notes || null,
       winner: winner || null,
       variants,
@@ -486,6 +550,70 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
             + Add Variant
           </button>
         )}
+      </fieldset>
+
+      {/* ---- Secondary Metrics ---- */}
+      <fieldset className={sectionClass}>
+        <legend className="text-base font-semibold text-gray-900 mb-2">
+          Secondary Metrics
+        </legend>
+        <p className="text-sm text-gray-500 mb-3">
+          Add additional KPIs to track for each variant.
+        </p>
+
+        {secondaryMetrics.length > 0 && (
+          <div className="space-y-3">
+            {secondaryMetrics.map((metric, mIdx) => (
+              <div
+                key={mIdx}
+                className="bg-white border border-gray-200 rounded-lg p-4 space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <input
+                    type="text"
+                    value={metric.name}
+                    onChange={(e) => updateMetricName(mIdx, e.target.value)}
+                    placeholder="Metric name (e.g. CTR, Bounce Rate)"
+                    className={`${inputClass} max-w-xs`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSecondaryMetric(mIdx)}
+                    className="text-xs text-red-500 hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {variants.map((v, vIdx) => (
+                    <div key={vIdx}>
+                      <label className="block text-xs text-gray-500 mb-1">
+                        {v.name}
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={metric.values[vIdx] ?? 0}
+                        onChange={(e) =>
+                          updateMetricValue(mIdx, vIdx, parseFloat(e.target.value) || 0)
+                        }
+                        className={inputClass}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={addSecondaryMetric}
+          className="text-sm text-blue-600 hover:text-blue-800 font-medium mt-2"
+        >
+          + Add Metric
+        </button>
       </fieldset>
 
       {/* ---- Live Significance Calculator ---- */}
