@@ -23,9 +23,12 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - `src/components/` — TestForm, TestCard, FilterBar, StatsRow, MonthGroup, VariantComparison, SignificanceCalculator
 
 ## Database
-- **Provider:** PostgreSQL (Neon)
-- **Connection:** Via pooler URL in `DATABASE_URL` env var
-- **Note:** Removed `channel_binding=require` from connection string — it causes connection drops with Neon's pooler
+- **Provider:** Google Cloud SQL PostgreSQL 16 (migrated from Neon April 2026)
+- **Host:** `35.242.253.118:5432`
+- **Database:** `marketing`, **User:** `ameya`
+- **Connection:** Via `DATABASE_URL` env var — requires `sslmode=require&sslaccept=accept_invalid_certs` (GCP uses a self-signed cert)
+- **Note:** No hibernation — GCP Cloud SQL is always on (unlike Neon free tier which sleeps after inactivity)
+- **Vercel:** Must also update `DATABASE_URL` in Vercel project settings and redeploy when changing DB
 - **JSON string pattern:** Used for flexible data — `screenshots` on Variant and `secondaryMetrics` on ABTest are stored as JSON strings (`@default("[]")`) rather than separate tables
 
 ## Key Features
@@ -55,7 +58,7 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - Env var changes in Vercel require a redeploy to take effect
 
 ## Environment Variables
-- `DATABASE_URL` — Neon PostgreSQL pooler connection string
+- `DATABASE_URL` — Google Cloud SQL PostgreSQL connection string (host: 35.242.253.118, db: marketing)
 - `BLOB_READ_WRITE_TOKEN` — Vercel Blob store token (public store)
 - Both are in `.env` locally (gitignored) and set in Vercel project settings
 
