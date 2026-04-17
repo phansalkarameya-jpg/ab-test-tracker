@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import SignificanceCalculator from '@/components/SignificanceCalculator';
 
 /* ------------------------------------------------------------------ */
@@ -133,6 +133,14 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
     parseSecondaryMetrics(initialData?.secondaryMetrics)
   );
   const [uploading, setUploading] = useState<number | null>(null);
+  const [lightbox, setLightbox] = useState<{ src: string; label: string } | null>(null);
+
+  // Close lightbox on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightbox(null); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   // Determine if initial channel is custom
   const isCustomChannel = channel !== '' && !CHANNELS.includes(channel);
@@ -523,7 +531,8 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
                       <img
                         src={url}
                         alt={`${v.name} screenshot ${sIdx + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover cursor-zoom-in"
+                        onClick={() => setLightbox({ src: url, label: `${v.name} — screenshot ${sIdx + 1}` })}
                       />
                       <button
                         type="button"
@@ -676,6 +685,33 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
           {initialData ? 'Save Changes' : 'Create Test'}
         </button>
       </div>
+
+      {/* ---- Lightbox ---- */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <div
+            className="relative max-w-5xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setLightbox(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 text-sm font-medium"
+            >
+              ✕ Close
+            </button>
+            <p className="text-white text-sm font-medium mb-2 text-center">{lightbox.label}</p>
+            <img
+              src={lightbox.src}
+              alt={lightbox.label}
+              className="w-full max-h-[80vh] object-contain rounded-lg"
+            />
+          </div>
+        </div>
+      )}
     </form>
   );
 }
