@@ -20,7 +20,9 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - `src/app/api/tests/[id]/pdf/` — Server-side PDF generation via @react-pdf/renderer
 - `src/app/api/upload/` — Screenshot upload via Vercel Blob (`@vercel/blob` SDK)
 - `src/components/TestReportPDF.tsx` — PDF document component (header, winner, data table, secondary metrics, screenshots, stats, notes, footer)
-- `src/components/` — TestForm, TestCard, FilterBar, StatsRow, MonthGroup, VariantComparison, SignificanceCalculator
+- `src/components/VariantComparison.tsx` — Bar chart + screenshot grid with lightbox modal
+- `src/components/` — TestForm, TestCard, FilterBar, StatsRow, MonthGroup, SignificanceCalculator
+- `scripts/migrate-db.mjs` — One-time migration script used to move data from Neon → GCP
 
 ## Database
 - **Provider:** Google Cloud SQL PostgreSQL 16 (migrated from Neon April 2026)
@@ -32,12 +34,14 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - **JSON string pattern:** Used for flexible data — `screenshots` on Variant and `secondaryMetrics` on ABTest are stored as JSON strings (`@default("[]")`) rather than separate tables
 
 ## Key Features
-- Dashboard with stats cards, search, and filters (status, service category, channel, significance, date range)
-- Service Categories: Home Cleaning, Salon At Home, Specialty, Healthcare
+- Dashboard with stats cards (Total Tests = all filtered, Win Rate/Avg Lift/% Significant = completed only), search, and filters (status, service category, channel, significance, date range)
+- Service Categories: Home Cleaning, Salon At Home, Specialty, Healthcare (colour-coded badges on cards)
 - Test statuses: Planned, Running, Completed
+- Test Owner field: free-form with datalist autocomplete from past owner names; shown on cards and detail page
 - Multiple screenshots per variant (stored as JSON string array in `screenshots` field)
 - Screenshots uploaded to Vercel Blob (persistent cloud storage, returns public URLs)
 - Screenshot delete via hover "x" button on thumbnails
+- Screenshot lightbox: click any screenshot (on detail page or edit form) to open full-size overlay; close with backdrop click or Escape
 - Secondary metrics/KPIs: add unlimited custom metrics (e.g. CTR, Bounce Rate) with per-variant values (stored as JSON string in `secondaryMetrics` field on ABTest)
 - Live statistical significance calculator in the test form
 - Custom channel support (preset list + custom input)
@@ -73,6 +77,14 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - SSH auth configured for GitHub (key: `~/.ssh/id_ed25519`)
 - `.env` is gitignored — contains DATABASE_URL and BLOB_READ_WRITE_TOKEN
 - Feature branches recommended for testing changes before merging to main
-- Last stable pre-PDF commit: `37236be`
-- Secondary metrics added in commit `bcfea1b`
+- User: Ameya Phansalkar (phansalkar.ameya@gmail.com)
+
+## Recent Commit History (for reference)
+- `cfc1219` — Service category badge on cards, test owner field, stats count fix
+- `fa0e392` — Screenshot lightbox zoom (click to enlarge)
+- `db6160d` — Migrate database from Neon to Google Cloud SQL PostgreSQL
+- `bcfea1b` — Secondary metrics/KPIs per variant
+- `595c83e` — PDF download feature
+- `7ea6044` — Service category filter + Vercel Blob uploads
+- `82f8a8c` — Initial commit
 - User: Ameya Phansalkar (phansalkar.ameya@gmail.com)
