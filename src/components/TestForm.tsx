@@ -35,6 +35,7 @@ interface ABTest {
   secondaryMetrics?: string;
   notes?: string | null;
   winner?: string | null;
+  owner?: string;
   variants: Variant[];
 }
 
@@ -121,6 +122,8 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
   const [primaryMetric, setPrimaryMetric] = useState(initialData?.primaryMetric ?? '');
   const [notes, setNotes] = useState(initialData?.notes ?? '');
   const [winner, setWinner] = useState(initialData?.winner ?? '');
+  const [owner, setOwner] = useState(initialData?.owner ?? '');
+  const [pastOwners, setPastOwners] = useState<string[]>([]);
   const [variants, setVariants] = useState<Variant[]>(
     initialData?.variants?.length
       ? initialData.variants.map((v) => ({
@@ -134,6 +137,19 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
   );
   const [uploading, setUploading] = useState<number | null>(null);
   const [lightbox, setLightbox] = useState<{ src: string; label: string } | null>(null);
+
+  // Fetch past owners for autocomplete
+  useEffect(() => {
+    fetch('/api/tests')
+      .then((r) => r.json())
+      .then((tests: { owner?: string }[]) => {
+        const owners = Array.from(
+          new Set(tests.map((t) => t.owner).filter((o): o is string => Boolean(o && o.trim())))
+        );
+        setPastOwners(owners);
+      })
+      .catch(() => {});
+  }, []);
 
   // Close lightbox on Escape
   useEffect(() => {
@@ -261,6 +277,7 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
       secondaryMetrics: JSON.stringify(trimmedMetrics),
       notes: notes || null,
       winner: winner || null,
+      owner: owner.trim() || '',
       variants,
     });
   };
@@ -429,6 +446,25 @@ export default function TestForm({ initialData, onSubmit }: TestFormProps) {
             placeholder="e.g. Click-through rate"
             className={inputClass}
           />
+        </div>
+
+        <div>
+          <label htmlFor="owner" className={labelClass}>Test Owner</label>
+          <input
+            id="owner"
+            type="text"
+            list="owner-suggestions"
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+            placeholder="e.g. Ameya, Sarah..."
+            className={inputClass}
+            autoComplete="off"
+          />
+          <datalist id="owner-suggestions">
+            {pastOwners.map((o) => (
+              <option key={o} value={o} />
+            ))}
+          </datalist>
         </div>
       </fieldset>
 

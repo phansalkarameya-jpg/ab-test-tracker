@@ -19,6 +19,7 @@ model ABTest {
   primaryMetric String
   notes         String?
   winner           String?
+  owner            String    @default("")
   secondaryMetrics String    @default("[]")
   createdAt        DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

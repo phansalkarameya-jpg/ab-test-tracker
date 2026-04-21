@@ -27,6 +27,7 @@ interface ABTest {
   primaryMetric: string;
   notes: string | null;
   winner: string | null;
+  owner: string;
   secondaryMetrics: string;
   createdAt: string;
   updatedAt: string;
@@ -173,6 +174,9 @@ export default function TestDetailPage() {
               >
                 Winner: {winnerLabel(test.winner, test.variants)}
               </span>
+            )}
+            {test.owner && (
+              <span className="text-xs text-gray-500">👤 {test.owner}</span>
             )}
           </div>
         </div>

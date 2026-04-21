@@ -24,6 +24,7 @@ interface ABTest {
   primaryMetric: string;
   notes?: string | null;
   winner?: string | null;
+  owner?: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
   variants: Variant[];
@@ -32,6 +33,13 @@ interface ABTest {
 interface TestCardProps {
   test: ABTest;
 }
+
+const CATEGORY_COLORS: Record<string, string> = {
+  'Home Cleaning': 'bg-sky-100 text-sky-700',
+  'Salon At Home': 'bg-fuchsia-100 text-fuchsia-700',
+  'Specialty': 'bg-violet-100 text-violet-700',
+  'Healthcare': 'bg-teal-100 text-teal-700',
+};
 
 const CHANNEL_COLORS: Record<string, string> = {
   Email: 'bg-purple-100 text-purple-700',
@@ -94,20 +102,28 @@ export default function TestCard({ test }: TestCardProps) {
       href={`/tests/${test.id}`}
       className="block bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all p-5"
     >
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <h3 className="font-semibold text-gray-900 text-base leading-tight line-clamp-2">
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <h3 className="font-semibold text-gray-900 text-base leading-tight line-clamp-2 min-w-0">
           {test.title}
         </h3>
-        <div className="flex gap-1.5 shrink-0">
+        <div className="flex flex-wrap gap-1.5 shrink-0 justify-end">
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusStyle}`}>
             {statusLabel}
           </span>
+          {test.serviceCategory && (
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${CATEGORY_COLORS[test.serviceCategory] || 'bg-gray-100 text-gray-700'}`}>
+              {test.serviceCategory}
+            </span>
+          )}
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${channelColor}`}>
             {test.channel}
           </span>
         </div>
       </div>
 
+      {test.owner && (
+        <p className="text-xs text-gray-400 mb-1">by {test.owner}</p>
+      )}
       <p className="text-xs text-gray-500 mb-3">{test.primaryMetric}</p>
 
       {test.status === 'planned' ? (

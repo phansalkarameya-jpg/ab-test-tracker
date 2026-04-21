@@ -35,13 +35,13 @@ interface StatsRowProps {
 
 export default function StatsRow({ tests }: StatsRowProps) {
   const completedTests = tests.filter((t) => t.status === 'completed');
-  const totalTests = completedTests.length;
+  const totalTests = tests.length; // All filtered tests, regardless of status
 
   // Calculate win rate: tests where a winner is declared (not null, not empty, not 'inconclusive')
   const testsWithWinner = completedTests.filter(
     (t) => t.winner && t.winner !== '' && t.winner !== 'inconclusive'
   );
-  const winRate = totalTests > 0 ? (testsWithWinner.length / totalTests) * 100 : 0;
+  const winRate = completedTests.length > 0 ? (testsWithWinner.length / completedTests.length) * 100 : 0;
 
   // Calculate average lift and significance percentage
   let totalLift = 0;
@@ -72,10 +72,10 @@ export default function StatsRow({ tests }: StatsRowProps) {
   const significantPct = totalTests > 0 ? (significantCount / totalTests) * 100 : 0;
 
   const stats = [
-    { label: 'Total Tests', value: totalTests.toString() },
-    { label: 'Win Rate', value: `${winRate.toFixed(1)}%` },
-    { label: 'Avg Lift', value: `${avgLift.toFixed(1)}%` },
-    { label: '% Significant', value: `${significantPct.toFixed(1)}%` },
+    { label: 'Total Tests', value: totalTests.toString(), sub: null },
+    { label: 'Win Rate', value: `${winRate.toFixed(1)}%`, sub: 'of completed' },
+    { label: 'Avg Lift', value: `${avgLift.toFixed(1)}%`, sub: 'of completed' },
+    { label: '% Significant', value: `${significantPct.toFixed(1)}%`, sub: 'of completed' },
   ];
 
   return (
@@ -87,6 +87,9 @@ export default function StatsRow({ tests }: StatsRowProps) {
         >
           <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
           <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
+          {stat.sub && (
+            <div className="text-xs text-gray-400 mt-0.5">{stat.sub}</div>
+          )}
         </div>
       ))}
     </div>
