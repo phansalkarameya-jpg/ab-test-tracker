@@ -103,7 +103,7 @@ export default function TestCard({ test }: TestCardProps) {
       className="block bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all p-5"
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <h3 className="font-semibold text-gray-900 text-base leading-tight line-clamp-2 min-w-0">
+        <h3 className="font-semibold text-gray-900 text-sm leading-snug min-w-0">
           {test.title}
         </h3>
         <div className="flex flex-wrap gap-1.5 shrink-0 justify-end">
