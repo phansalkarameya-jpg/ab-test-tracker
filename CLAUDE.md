@@ -1,7 +1,7 @@
 # AB Test Tracker
 
 ## Project Overview
-A full-stack Next.js app for tracking A/B tests with statistical significance analysis. Deployed on **Vercel**, backed by **Neon PostgreSQL**.
+A full-stack Next.js app for tracking A/B tests with statistical significance analysis. Deployed on **Vercel**, backed by **Google Cloud SQL PostgreSQL**.
 
 ## Tech Stack
 - **Framework:** Next.js 16 (App Router, React 19)
@@ -30,14 +30,17 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - **Database:** `marketing`, **User:** `ameya`
 - **Connection:** Via `DATABASE_URL` env var — requires `sslmode=require&sslaccept=accept_invalid_certs` (GCP uses a self-signed cert)
 - **Note:** No hibernation — GCP Cloud SQL is always on (unlike Neon free tier which sleeps after inactivity)
+- **Screenshots:** Still on Vercel Blob (no need to migrate — Blob doesn't hibernate)
 - **Vercel:** Must also update `DATABASE_URL` in Vercel project settings and redeploy when changing DB
+- **Local db:push:** Run with explicit DATABASE_URL override: `DATABASE_URL="postgresql://ameya:...@35.242.253.118:5432/marketing?sslmode=require&sslaccept=accept_invalid_certs" npx prisma db push`
 - **JSON string pattern:** Used for flexible data — `screenshots` on Variant and `secondaryMetrics` on ABTest are stored as JSON strings (`@default("[]")`) rather than separate tables
 
 ## Key Features
 - Dashboard with stats cards (Total Tests = all filtered, Win Rate/Avg Lift/% Significant = completed only), search, and filters (status, service category, channel, significance, date range)
 - Service Categories: Home Cleaning, Salon At Home, Specialty, Healthcare (colour-coded badges on cards)
 - Test statuses: Planned, Running, Completed
-- Test Owner field: free-form with datalist autocomplete from past owner names; shown on cards and detail page
+- Test Owner field: free-form with datalist autocomplete from past owner names; shown as "by [name]" on cards and "👤 [name]" on detail page
+- Test cards: full title shown at top (no truncation), smaller font; badges (status, category, channel) on separate row below
 - Multiple screenshots per variant (stored as JSON string array in `screenshots` field)
 - Screenshots uploaded to Vercel Blob (persistent cloud storage, returns public URLs)
 - Screenshot delete via hover "x" button on thumbnails
@@ -51,12 +54,12 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 ## Important Notes
 - `next.config.ts` has `serverExternalPackages` for `@prisma/client`, `@react-pdf/renderer`, and `@react-pdf/pdfkit` — these must stay server-side due to Node.js dependencies
 - Tailwind CSS 4 uses `lab()` color functions — incompatible with html2canvas/html2pdf.js client-side capture (that's why PDF is server-rendered)
-- Neon free tier databases hibernate after inactivity — first request after sleep may timeout
+- GCP SSL uses a self-signed cert — Node `pg` client needs `ssl: { rejectUnauthorized: false }` or `sslaccept=accept_invalid_certs` in the connection string
 
 ## Deployment
 - **Hosting:** Vercel (auto-deploys from GitHub on push to main)
 - **Repo:** https://github.com/phansalkarameya-jpg/ab-test-tracker
-- **Database:** Neon PostgreSQL (free tier)
+- **Database:** Google Cloud SQL PostgreSQL 16 (host: 35.242.253.118)
 - **File Storage:** Vercel Blob (public store, free tier)
 - `postinstall` script in package.json runs `prisma generate` for Vercel builds
 - Env var changes in Vercel require a redeploy to take effect
@@ -68,7 +71,7 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 
 ## Commands
 - `npm run dev` — Start dev server
-- `npm run db:push` — Push schema changes to Neon
+- `npm run db:push` — Push schema changes (note: uses DATABASE_URL from .env which points to GCP)
 - `npm run db:seed` — Seed database with sample data
 - `npm run db:studio` — Open Prisma Studio
 - `npm run setup` — Full setup (generate + push + seed)
@@ -80,6 +83,8 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - User: Ameya Phansalkar (phansalkar.ameya@gmail.com)
 
 ## Recent Commit History (for reference)
+- `ec74e73` — Full title on cards, badges on separate row below title
+- `d463529` — Show full test title in smaller font (removed truncation)
 - `cfc1219` — Service category badge on cards, test owner field, stats count fix
 - `fa0e392` — Screenshot lightbox zoom (click to enlarge)
 - `db6160d` — Migrate database from Neon to Google Cloud SQL PostgreSQL
@@ -87,4 +92,3 @@ A full-stack Next.js app for tracking A/B tests with statistical significance an
 - `595c83e` — PDF download feature
 - `7ea6044` — Service category filter + Vercel Blob uploads
 - `82f8a8c` — Initial commit
-- User: Ameya Phansalkar (phansalkar.ameya@gmail.com)
